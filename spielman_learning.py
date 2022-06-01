@@ -17,11 +17,13 @@ def vector_to_matrix(n, ws):
     
     return W, degrees
 
-def objective_function_spielman(x, ws):
+def objective_function_spielman(x, ws, verbose):
     
     n, d = np.shape(x)
     W, ds = vector_to_matrix(np.shape(x)[0], ws)
     L = np.diag(ds) - W
+    if verbose:
+        print(np.linalg.norm(L @ x))
     return np.linalg.norm(L @ x)
 
 def constraints_spielman(n, c, α, positive):
@@ -39,12 +41,13 @@ def bounds_spielman(n):
 
 def make_graph(n, ws, tol = 1e-10):
     
-    new_ws = ws[np.abs(ws) < tol] = 0
+    ws = ws.copy()
+    ws[np.abs(ws) < tol] = 0
+    new_ws = ws
     W = np.zeros((n, n))
     W[np.triu_indices(n, 1)] = new_ws
-    for i in range(1, n):
-        for j in range(i):
-            W[i, j] = W[j, i]
+    W += W.T
+
     return p.graphs.Graph(W)
 
 def great_circle_distance(lat1, lon1, lat2, lon2):
