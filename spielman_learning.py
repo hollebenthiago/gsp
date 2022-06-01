@@ -22,23 +22,24 @@ def objective_function_spielman(x, ws):
     n, d = np.shape(x)
     W, ds = vector_to_matrix(np.shape(x)[0], ws)
     L = np.diag(ds) - W
-    
     return np.linalg.norm(L @ x)
 
-def constraints_spielman(n, c, α):
+def constraints_spielman(n, c, α, positive):
     
     _, ds = vector_to_matrix(n, c)
-    g = lambda c: α * n - sum([max(0, 1 - di) for di in ds]) 
-#     g = lambda c: sum([max(0, 1 - di) for di in ds]) - α * n 
+    if positive:
+        g = lambda c: α * n - sum([max(0, 1 - di) for di in ds]) 
+    else:
+        g = lambda c: sum([max(0, 1 - di) for di in ds]) - α * n 
     return ({'type': 'ineq', 'fun': g})
 
 def bounds_spielman(n):
     
-    return n * [(0, None)]
+    return n * [(0, 1)]
 
-def make_graph(n, ws, tol = 10):
+def make_graph(n, ws, tol = 1e-10):
     
-    new_ws = np.round(ws, tol)
+    new_ws = ws[np.abs(ws) < tol] = 0
     W = np.zeros((n, n))
     W[np.triu_indices(n, 1)] = new_ws
     for i in range(1, n):
