@@ -32,7 +32,7 @@ def constraints_spielman(n, c, α, positive):
     if positive:
         g = lambda c: α * n - sum([max(0, 1 - di) ** 2 for di in ds]) 
     else:
-        g = lambda c: sum([max(0, 1 - di) for di in ds]) - α * n 
+        g = lambda c: sum([max(0, 1 - di) ** 2 for di in ds]) - α * n 
     return ({'type': 'ineq', 'fun': g})
 
 def bounds_spielman(n):
