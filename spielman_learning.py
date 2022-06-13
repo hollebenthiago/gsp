@@ -17,6 +17,63 @@ def vector_to_matrix(n, ws):
     
     return W, degrees
 
+def objective_function(X, Y, ws, α, β, constant, scale = 1):
+    
+    n, m = np.shape(X)
+    Y = Y.reshape((n, m))
+    W, ds = vector_to_matrix(n, ws)
+    L = np.diag(ds) - W
+    norm = np.linalg.norm(X - Y) ** 2
+    trace = np.trace(Y.T @ L @ Y)
+    lap_norm = np.linalg.norm(L) ** 2
+    
+    if constant == 'Y':
+        return (α * trace + β * lap_norm) / scale
+
+    if constant == 'L':
+        return (norm + α * trace) / scale
+
+def constraints(N):
+    
+     return ({'type': 'eq', 'fun': lambda ws: 2 * sum(ws) - N})
+
+def bounds(n):
+    
+    return n * [(0, None)]
+
+def algorithm(X, L0, num_iter, α = 1, β = 1, N = 10, tol = 1e-8, method1 = 'trust-constr', scale = 1):
+    
+    n, m = np.shape(X)
+    ws = L0[np.triu_indices(n, k = 1)]
+    Y = X
+    
+    for t in range(num_iter):
+        
+        f = lambda ws: objective_function(X, Y, ws, α, β, 'Y', scale) 
+        resY = minimize(f, ws, bounds = bounds(len(ws)), 
+                        constraints = constraints(N), method = method1)
+        
+        if resY.success == False:
+            return 'Failure L'
+
+        print(f'L minimized, current iteration: %s out of %s' %(t, num_iter) )
+
+        ws = resY.x
+        W, ds = vector_to_matrix(n, ws)
+        L = np.diag(ds) - W
+        
+        g = lambda Y: objective_function(X, Y, ws, α, β, 'L')
+        resL = minimize(g, Y)
+        
+        if resL.success == False:
+            return 'Failure Y'
+        
+        print(f'Y minimized, current iteration: %s out of %s' %(t, num_iter) )
+
+
+        Y = resL.x
+    return Y, ws
+
 def objective_function_spielman(x, ws, verbose):
     
     n, d = np.shape(x)
